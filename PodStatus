@@ -1,0 +1,25 @@
+#!/bin/bash
+# Get status of Kubernetes pods across all namespaces
+
+# Import utilities
+SCRIPT_DIR="$(dirname "$0")"
+source "${SCRIPT_DIR}/lib/check-prereqs.sh"
+source "${SCRIPT_DIR}/lib/format.sh"
+
+# Check prerequisites
+check_kubectl
+check_cluster_access
+
+# Print header
+format_header
+
+# Get pods from all namespaces
+kubectl get namespaces -o name | cut -d'/' -f2 | while read -r namespace; do
+  # Get pods in namespace
+  if pods=$(kubectl get pods -n "$namespace" -o wide 2>/dev/null); then
+    if [[ -n "$pods" ]]; then
+      format_namespace_header "$namespace"
+      echo "$pods"
+    fi
+  fi
+done
